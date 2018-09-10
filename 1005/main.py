@@ -49,18 +49,17 @@ def solve(delays, deps, the_unit):
     search_q = deque()
     topology = []
 
-    while len(topology) < len(indegrees)-1:
-        for i, x in enumerate(indegrees[1:], start=1):
-            if x == 0:
-                search_q.append(i)
+    for i, x in enumerate(indegrees[1:], start=1):
+        if x == 0:
+            search_q.append(i)
 
-        while search_q:
-            i = search_q.popleft()
-            topology.append(i)
-            for j in refs[i]:
-                indegrees[j] -= 1
-                if indegrees[j] == 0:
-                    search_q.append(j)
+    while search_q:
+        i = search_q.popleft()
+        topology.append(i)
+        for j in refs[i]:
+            indegrees[j] -= 1
+            if indegrees[j] == 0:
+                search_q.append(j)
 
     # analyze delays from dependencies
     dep_delays = [0] * len(delays)
