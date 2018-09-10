@@ -56,7 +56,6 @@ def solve(delays, deps, the_unit):
 
         while search_q:
             i = search_q.popleft()
-            indegrees[i] = -1
             topology.append(i)
             for j in refs[i]:
                 indegrees[j] -= 1
