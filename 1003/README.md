@@ -2,6 +2,11 @@
 
 https://www.acmicpc.net/problem/1003
 
+```
+$ make
+$ cat example.txt | ./main
+```
+
 ---
 
 ## 문제
