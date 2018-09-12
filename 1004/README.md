@@ -2,6 +2,17 @@
 
 https://www.acmicpc.net/problem/1004
 
+```
+$ node --version
+v0.10.48
+$ cat example.txt | node main.js
+3
+0
+```
+
+배운 것: acmicpc.net Node.js는 버전이 낮다. `let`, `const`, `() => {}` 등은 쓸
+수 없다.
+
 ---
 
 ## 문제
