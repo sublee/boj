@@ -5,6 +5,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -48,5 +49,82 @@ func main() {
 	}
 }
 
+//    ┌──┐  ┌─────┐  ┌─────┐
+//  70│60│55│43 57│60│44 50│
+// ───┤  │  └──┬──┴──┼──┬──┘
+//  58│40│47 90│45 52│80│40
+// ───┴──┘     └─────┘  └───
+
+func best(i, n, w int, enemies []int, covered []bool) int {
+	var (
+		l int // left
+		r int // right
+		v int // vertical
+	)
+
+	l = (i + n - 1) % n
+	r = (i + 1) % n
+
+	if i < n {
+		v = i + n
+	} else {
+		l += n
+		r += n
+		v = i - n
+	}
+
+	lx := enemies[i] + enemies[l]
+	rx := enemies[i] + enemies[r]
+	vx := enemies[i] + enemies[v]
+
+	j := -1
+	x := enemies[i]
+
+	if !covered[l] && lx <= w && lx > x {
+		j = l
+		x = lx
+	}
+
+	if !covered[r] && rx <= w && rx > x {
+		j = r
+		x = rx
+	}
+
+	if !covered[v] && vx <= w && vx > x {
+		j = v
+		x = vx
+	}
+
+	return j
+}
+
 func solve(n, w int, enemies []int) {
+	covered := make([]bool, len(enemies))
+	count := 0
+
+	for i := 0; i < n*2; i++ {
+		if covered[i] {
+			continue
+		}
+
+		j := best(i, n, w, enemies, covered)
+
+		if j == -1 {
+			continue
+		}
+
+		if best(j, n, w, enemies, covered) == i {
+			covered[i] = true
+			covered[j] = true
+			count++
+		}
+	}
+
+	for _, c := range covered {
+		if c == false {
+			count++
+		}
+	}
+
+	fmt.Println(count)
 }
