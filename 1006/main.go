@@ -94,47 +94,78 @@ func pairwise(n, w int, enemies []int) [][2]int {
 	return pairs
 }
 
-var noPairs [][2]int
+var counter int
 
-func greedyPairs(pairs [][2]int, covered []int) [][2]int {
-	// fmt.Println("f(", pairs, ", ", covered, ")")
+type memo map[int]map[int]int
+
+func hash(pairs [][2]int, covered []int) int {
+	if len(covered) == 0 {
+		return 0
+	}
+
+	x := 0
+
+	for i, pair := range pairs {
+		j := i * 2
+		if has(covered, pair[0]) {
+			x |= 1 << uint(j)
+		}
+		if has(covered, pair[1]) {
+			x |= 1 << uint(j+1)
+		}
+	}
+
+	return x
+}
+
+func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
+	h := hash(pairs, covered)
+	n, cached := m[len(pairs)][h]
+	if cached {
+		return
+	}
+
+	defer func() {
+		if _, ok := m[len(pairs)]; !ok {
+			m[len(pairs)] = make(map[int]int)
+		}
+		m[len(pairs)][h] = n
+		// fmt.Fprintln(os.Stderr, "f(", len(pairs), ", ", h, ") =>", foundPairs)
+	}()
+
+	counter++
+
 	if len(pairs) == 0 {
-		return noPairs
+		n = 0
+		return
 	}
 
 	pair := pairs[0]
 	x := pair[0]
 	y := pair[1]
 
-	var foundPairs [][2]int
 	if has(covered, x) || has(covered, y) {
-		foundPairs = noPairs
+		n = 0
 	} else {
-		foundPairs = [][2]int{pair}
+		n = 1
 	}
 
 	if len(pairs) == 1 {
-		return foundPairs
+		return
 	}
 
 	// if this pair is not used.
-	a := greedyPairs(pairs[1:], covered)
+	neg := greedyPairs(pairs[1:], covered, m)
 
 	// if this pair is used.
-	b := append(foundPairs, greedyPairs(pairs[1:], add(add(covered, x), y))...)
+	pos := n + greedyPairs(pairs[1:], add(add(covered, x), y), m)
 
-	// indent := strings.Repeat(" ", 12-len(pairs))
-	// fmt.Println(indent, covered)
-	if len(a) > len(b) {
-		// fmt.Println(indent, pair, " NO")
-		// fmt.Println(indent, "=>", a)
-		// fmt.Println(indent, "  ", b)
-		return a
+	if neg > pos {
+		n = neg
+	} else {
+		n = pos
 	}
-	// fmt.Println(indent, pair, "YES")
-	// fmt.Println(indent, "  ", a)
-	// fmt.Println(indent, "=>", b)
-	return b
+	return
 }
 
 func solve(n, w int, enemies []int) {
@@ -148,11 +179,11 @@ func solve(n, w int, enemies []int) {
 	pairs := pairwise(n, w, enemies)
 	// fmt.Println("PAIRS:", pairs)
 
-	uniqPairs := greedyPairs(pairs, make([]int, 0))
-	numPairs := len(uniqPairs)
+	m := make(memo)
+	numPairs := greedyPairs(pairs, make([]int, 0), m)
 	answer := numPairs + (n-numPairs)*2
 
-	fmt.Println(answer)
+	fmt.Println(answer, counter)
 }
 
 // Set operations
