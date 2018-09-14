@@ -144,6 +144,8 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 	x := pair[0]
 	y := pair[1]
 
+	var neg, pos int
+
 	if has(covered, x) || has(covered, y) {
 		n = 0
 	} else {
@@ -155,10 +157,15 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 	}
 
 	// if this pair is not used.
-	neg := greedyPairs(pairs[1:], covered, m)
+	neg = greedyPairs(pairs[1:], covered, m)
 
 	// if this pair is used.
-	pos := n + greedyPairs(pairs[1:], add(add(covered, x), y), m)
+	if n == 0 {
+		pos = 0
+	} else {
+		subCovered := append(covered, x, y)
+		pos = 1 + greedyPairs(pairs[1:], subCovered, m)
+	}
 
 	if neg > pos {
 		n = neg
