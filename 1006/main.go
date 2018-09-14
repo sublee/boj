@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -86,42 +87,46 @@ func pairwise(n, w int, enemies []int) [][2]int {
 
 var counter int
 
-type memo map[int]map[int]int
+type memo map[int]*tree
 
-func hash(pairs [][2]int, covered []int) int {
-	if len(covered) == 0 {
-		return 0
-	}
+type tree struct {
+	value int
+	index map[int]*tree
+}
 
-	x := 0
-
-	for i, pair := range pairs {
-		j := i * 2
-		if has(covered, pair[0]) {
-			x |= 1 << uint(j)
-		}
-		if has(covered, pair[1]) {
-			x |= 1 << uint(j+1)
-		}
-	}
-
-	return x
+func newTree() *tree {
+	return &tree{-1, make(map[int]*tree)}
 }
 
 func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
-	h := hash(pairs, covered)
-	n, cached := m[len(pairs)][h]
-	if cached {
+	p := len(pairs)
+	if _, ok := m[p]; !ok {
+		m[p] = newTree()
+	}
+
+	t, _ := m[p]
+	for _, c := range covered {
+		if _, ok := t.index[c]; !ok {
+			t.index[c] = newTree()
+		}
+		t = t.index[c]
+	}
+	if t.value != -1 {
+		n = t.value
+		// fmt.Println(p)
 		return
 	}
 
-	defer func() {
-		if _, ok := m[len(pairs)]; !ok {
-			m[len(pairs)] = make(map[int]int)
-		}
-		m[len(pairs)][h] = n
+	defer func(c string) {
+		t.value = n
+		fmt.Println(p, c, n)
+		// fmt.Println(p, covered, n)
+		// if _, ok := m[len(pairs)]; !ok {
+		// 	m[len(pairs)] = make(map[string]int)
+		// }
+		// m[len(pairs)][h] = n
 		// fmt.Fprintln(os.Stderr, "f(", len(pairs), ", ", h, ") =>", foundPairs)
-	}()
+	}(fmt.Sprintf("%v", covered))
 
 	counter++
 
@@ -154,6 +159,7 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 		pos = 0
 	} else {
 		subCovered := append(covered, x, y)
+		sort.Sort(sort.IntSlice(subCovered))
 		pos = 1 + greedyPairs(pairs[1:], subCovered, m)
 	}
 
@@ -166,20 +172,15 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 }
 
 func solve(n, w int, enemies []int) {
-	// fmt.Println("---")
-	// covered := make([]bool, len(enemies))
-	// count := 0
-
-	// linkMap := make(map[int][]int)
-	// var byNumLinks [3][]int
-
 	pairs := pairwise(n, w, enemies)
-	// fmt.Println("PAIRS:", pairs)
 
+	covered := make([]int, 0)
 	m := make(memo)
-	numPairs := greedyPairs(pairs, make([]int, 0), m)
+
+	numPairs := greedyPairs(pairs, covered, m)
 	answer := numPairs + (n-numPairs)*2
 
+	fmt.Println("PAIRS", pairs)
 	fmt.Println(answer, counter)
 }
 
@@ -199,6 +200,15 @@ func add(a []int, i int) []int {
 		return a
 	}
 	return append(a, i)
+}
+
+func remove(a []int, i int) []int {
+	for k, j := range a {
+		if j == i {
+			return append(a[:k], a[k+1:]...)
+		}
+	}
+	return a
 }
 
 func hasPair(a [][2]int, p [2]int) bool {
