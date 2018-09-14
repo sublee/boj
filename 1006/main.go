@@ -50,7 +50,7 @@ func main() {
 }
 
 func pairwise(n, w int, enemies []int) [][2]int {
-	links := make([][]int, n*2)
+	pairs := make([][2]int, 0)
 
 	for i := 0; i < n*2; i++ {
 		var (
@@ -69,25 +69,15 @@ func pairwise(n, w int, enemies []int) [][2]int {
 
 		for _, j := range [2]int{r, b} {
 			if j != -1 && j != i && enemies[i]+enemies[j] <= w {
-				links[i] = add(links[i], j)
-				links[j] = add(links[j], i)
+				pair := [2]int{i, j}
+				// sort
+				if i > j {
+					pair[0] = j
+					pair[1] = i
+				}
+
+				pairs = addPair(pairs, pair)
 			}
-		}
-	}
-
-	// Collect unique pairs.
-	pairs := make([][2]int, 0)
-
-	for i, js := range links {
-		for _, j := range js {
-			pair := [2]int{i, j}
-			// sort
-			if i > j {
-				pair[0] = j
-				pair[1] = i
-			}
-
-			pairs = addPair(pairs, pair)
 		}
 	}
 
