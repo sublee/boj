@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -50,139 +49,142 @@ func main() {
 	}
 }
 
-//    ┌──┐  ┌─────┐  ┌─────┐
-//  70│60│55│43 57│60│44 50│
-// ───┤  │  └──┬──┴──┼──┬──┘
-//  58│40│47 90│45 52│80│40
-// ───┴──┘     └─────┘  └───
+func pairwise(n, w int, enemies []int) [][2]int {
+	links := make([][]int, n*2)
 
-func tryMerge(i, n, w int, enemies []int, covered []bool) []int {
-	var (
-		l int // left
-		r int // right
-		v int // vertical
-	)
+	for i := 0; i < n*2; i++ {
+		var (
+			// l int // left
+			r int // right
+			b int // bottom
+		)
 
-	l = (i + n - 1) % n
-	r = (i + 1) % n
+		if i < n {
+			r = (i + 1) % n
+			b = i + n
+		} else {
+			r = (i+1)%n + n
+			b = -1
+		}
 
-	if i < n {
-		v = i + n
+		for _, j := range [2]int{r, b} {
+			if j != -1 && j != i && enemies[i]+enemies[j] <= w {
+				links[i] = add(links[i], j)
+				links[j] = add(links[j], i)
+			}
+		}
+	}
+
+	// Collect unique pairs.
+	pairs := make([][2]int, 0)
+
+	for i, js := range links {
+		for _, j := range js {
+			pair := [2]int{i, j}
+			// sort
+			if i > j {
+				pair[0] = j
+				pair[1] = i
+			}
+
+			pairs = addPair(pairs, pair)
+		}
+	}
+
+	return pairs
+}
+
+var noPairs [][2]int
+
+func greedyPairs(pairs [][2]int, covered []int) [][2]int {
+	// fmt.Println("f(", pairs, ", ", covered, ")")
+	if len(pairs) == 0 {
+		return noPairs
+	}
+
+	pair := pairs[0]
+	x := pair[0]
+	y := pair[1]
+
+	var foundPairs [][2]int
+	if has(covered, x) || has(covered, y) {
+		foundPairs = noPairs
 	} else {
-		l += n
-		r += n
-		v = i - n
+		foundPairs = [][2]int{pair}
 	}
 
-	x := enemies[i]
-	lx := x + enemies[l]
-	rx := x + enemies[r]
-	vx := x + enemies[v]
-
-	tab := make(map[int][]int)
-
-	if l != i && !covered[l] && lx <= w {
-		tab[lx] = append(tab[lx], l)
-	}
-	if r != i && !covered[r] && rx <= w {
-		tab[rx] = append(tab[rx], r)
-	}
-	if v != i && !covered[v] && vx <= w {
-		tab[vx] = append(tab[vx], v)
+	if len(pairs) == 1 {
+		return foundPairs
 	}
 
-	var keys []int
-	for key := range tab {
-		keys = append(keys, key)
-	}
-	sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+	// if this pair is not used.
+	a := greedyPairs(pairs[1:], covered)
 
-	var links []int
-	for _, key := range keys {
-		links = append(links, tab[key]...)
-	}
+	// if this pair is used.
+	b := append(foundPairs, greedyPairs(pairs[1:], add(add(covered, x), y))...)
 
-	return links
-}
-
-func firstNotCovered(a []int, covered []bool) int {
-	for _, j := range a {
-		if !covered[j] {
-			return j
-		}
+	// indent := strings.Repeat(" ", 12-len(pairs))
+	// fmt.Println(indent, covered)
+	if len(a) > len(b) {
+		// fmt.Println(indent, pair, " NO")
+		// fmt.Println(indent, "=>", a)
+		// fmt.Println(indent, "  ", b)
+		return a
 	}
-	return -1
-}
-
-func countNotCovered(a []int, covered []bool) int {
-	count := 0
-	for _, j := range a {
-		if !covered[j] {
-			count++
-		}
-	}
-	return count
+	// fmt.Println(indent, pair, "YES")
+	// fmt.Println(indent, "  ", a)
+	// fmt.Println(indent, "=>", b)
+	return b
 }
 
 func solve(n, w int, enemies []int) {
 	// fmt.Println("---")
-	covered := make([]bool, len(enemies))
-	count := 0
+	// covered := make([]bool, len(enemies))
+	// count := 0
 
-	linkMap := make(map[int][]int)
-	var byNumLinks [3][]int
+	// linkMap := make(map[int][]int)
+	// var byNumLinks [3][]int
 
-	for i := 0; i < n*2; i++ {
-		linkMap[i] = tryMerge(i, n, w, enemies, covered)
+	pairs := pairwise(n, w, enemies)
+	// fmt.Println("PAIRS:", pairs)
 
-		numLinks := len(linkMap[i])
-		if numLinks != 0 {
-			k := numLinks - 1
-			byNumLinks[k] = append(byNumLinks[k], i)
+	uniqPairs := greedyPairs(pairs, make([]int, 0))
+	numPairs := len(uniqPairs)
+	answer := numPairs + (n-numPairs)*2
+
+	fmt.Println(answer)
+}
+
+// Set operations
+
+func has(a []int, i int) bool {
+	for _, j := range a {
+		if j == i {
+			return true
 		}
 	}
+	return false
+}
 
-	// fmt.Println(linkMap)
+func add(a []int, i int) []int {
+	if has(a, i) {
+		return a
+	}
+	return append(a, i)
+}
 
-	for _, is := range byNumLinks {
-		for _, i := range is {
-			if covered[i] {
-				continue
-			}
-
-			links := linkMap[i]
-
-			// find minimum links
-			minLinks := 4
-			lonelyJ := -1
-			for _, j := range links {
-				if covered[j] {
-					continue
-				}
-
-				linksJ := linkMap[j]
-				numLinksJ := countNotCovered(linksJ, covered)
-
-				if numLinksJ < minLinks {
-					lonelyJ = j
-					minLinks = numLinksJ
-				}
-			}
-
-			if lonelyJ != -1 {
-				// fmt.Println(i, lonelyJ)
-				covered[i] = true
-				covered[lonelyJ] = true
-				count++
-			}
+func hasPair(a [][2]int, p [2]int) bool {
+	for _, q := range a {
+		if q == p {
+			return true
 		}
 	}
+	return false
+}
 
-	for _, c := range covered {
-		if c == false {
-			count++
-		}
+func addPair(a [][2]int, p [2]int) [][2]int {
+	if hasPair(a, p) {
+		return a
 	}
-
-	fmt.Println(count)
+	return append(a, p)
 }
