@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -55,7 +56,7 @@ func main() {
 //  58│40│47 90│45 52│80│40
 // ───┴──┘     └─────┘  └───
 
-func best(i, n, w int, enemies []int, covered []bool) int {
+func tryMerge(i, n, w int, enemies []int, covered []bool) []int {
 	var (
 		l int // left
 		r int // right
@@ -73,50 +74,107 @@ func best(i, n, w int, enemies []int, covered []bool) int {
 		v = i - n
 	}
 
-	lx := enemies[i] + enemies[l]
-	rx := enemies[i] + enemies[r]
-	vx := enemies[i] + enemies[v]
-
-	j := -1
 	x := enemies[i]
+	lx := x + enemies[l]
+	rx := x + enemies[r]
+	vx := x + enemies[v]
 
-	if !covered[l] && lx <= w && lx > x {
-		j = l
-		x = lx
+	tab := make(map[int][]int)
+
+	if l != i && !covered[l] && lx <= w {
+		tab[lx] = append(tab[lx], l)
+	}
+	if r != i && !covered[r] && rx <= w {
+		tab[rx] = append(tab[rx], r)
+	}
+	if v != i && !covered[v] && vx <= w {
+		tab[vx] = append(tab[vx], v)
 	}
 
-	if !covered[r] && rx <= w && rx > x {
-		j = r
-		x = rx
+	var keys []int
+	for key := range tab {
+		keys = append(keys, key)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+
+	var links []int
+	for _, key := range keys {
+		links = append(links, tab[key]...)
 	}
 
-	if !covered[v] && vx <= w && vx > x {
-		j = v
-		x = vx
-	}
+	return links
+}
 
-	return j
+func firstNotCovered(a []int, covered []bool) int {
+	for _, j := range a {
+		if !covered[j] {
+			return j
+		}
+	}
+	return -1
+}
+
+func countNotCovered(a []int, covered []bool) int {
+	count := 0
+	for _, j := range a {
+		if !covered[j] {
+			count++
+		}
+	}
+	return count
 }
 
 func solve(n, w int, enemies []int) {
+	// fmt.Println("---")
 	covered := make([]bool, len(enemies))
 	count := 0
 
+	linkMap := make(map[int][]int)
+	var byNumLinks [3][]int
+
 	for i := 0; i < n*2; i++ {
-		if covered[i] {
-			continue
+		linkMap[i] = tryMerge(i, n, w, enemies, covered)
+
+		numLinks := len(linkMap[i])
+		if numLinks != 0 {
+			k := numLinks - 1
+			byNumLinks[k] = append(byNumLinks[k], i)
 		}
+	}
 
-		j := best(i, n, w, enemies, covered)
+	// fmt.Println(linkMap)
 
-		if j == -1 {
-			continue
-		}
+	for _, is := range byNumLinks {
+		for _, i := range is {
+			if covered[i] {
+				continue
+			}
 
-		if best(j, n, w, enemies, covered) == i {
-			covered[i] = true
-			covered[j] = true
-			count++
+			links := linkMap[i]
+
+			// find minimum links
+			minLinks := 4
+			lonelyJ := -1
+			for _, j := range links {
+				if covered[j] {
+					continue
+				}
+
+				linksJ := linkMap[j]
+				numLinksJ := countNotCovered(linksJ, covered)
+
+				if numLinksJ < minLinks {
+					lonelyJ = j
+					minLinks = numLinksJ
+				}
+			}
+
+			if lonelyJ != -1 {
+				// fmt.Println(i, lonelyJ)
+				covered[i] = true
+				covered[lonelyJ] = true
+				count++
+			}
 		}
 	}
 
