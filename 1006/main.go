@@ -60,8 +60,13 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		return 0
 	}
 
-	if m[i][shadow] != 0 {
-		return m[i][shadow] - 1
+	key := shadow
+	if i != n-1 {
+		key &^= 12
+	}
+
+	if m[i][key] != 0 {
+		return m[i][key] - 1
 	}
 
 	miss++
@@ -72,90 +77,43 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		br = (i+1)%n + n // bottom right
 	)
 
-	// masks
-	// [i-b, i-r, b-br, r-br]
-
-	// x - x
-	// |   |
-	// x - x
-
-	var a, win int
-	var ok bool
-
-	a = f(i+1, n, w, enemies, shadow&12|0, m)
-	win = -1
-
-	if shadow&3 == 0 && enemies[i]+enemies[b] <= w {
+	nextShadow := func(nextBits, firstBits int) int {
 		if i == 0 {
-			shadow = 3 << 2
+			firstBits <<= 2
+		} else {
+			firstBits = shadow & 12
 		}
-		a, ok = max(a, 1+f(i+1, n, w, enemies, shadow&12|0, m))
-		if ok {
-			win = 0
-		}
+		return firstBits | nextBits
 	}
 
+	x := f(i+1, n, w, enemies, nextShadow(0, 0), m)
+
+	if shadow&3 == 0 && enemies[i]+enemies[b] <= w {
+		x = max(x, 1+f(i+1, n, w, enemies, nextShadow(0, 3), m))
+	}
+
+	both := 0
+
 	if shadow&1 == 0 && enemies[i]+enemies[r] <= w {
-		if i < n-1 || shadow&4 == 0 {
-			if i == 0 {
-				shadow = 1 << 2
-			}
-			a, ok = max(a, 1+f(i+1, n, w, enemies, shadow&12|1, m))
-			if ok {
-				win = 1
-			}
+		if !(i == n-1 && shadow&4 != 0) {
+			x = max(x, 1+f(i+1, n, w, enemies, nextShadow(1, 1), m))
+			both++
 		}
 	}
 
 	if shadow&2 == 0 && enemies[b]+enemies[br] <= w {
-		if i < n-1 || shadow&16 == 0 {
-			if i == 0 {
-				shadow = 2 << 2
-			}
-			a, ok = max(a, 1+f(i+1, n, w, enemies, shadow&12|2, m))
-			if ok {
-				win = 2
-			}
+		if !(i == n-1 && shadow&8 != 0) {
+			x = max(x, 1+f(i+1, n, w, enemies, nextShadow(2, 2), m))
+			both++
 		}
 	}
 
-	if shadow&1 == 0 && enemies[i]+enemies[r] <= w && shadow&2 == 0 && enemies[b]+enemies[br] <= w {
-		if i < n-1 || shadow&12 == 0 {
-			if i == 0 {
-				shadow = 3 << 2
-			}
-			a, ok = max(a, 2+f(i+1, n, w, enemies, shadow&12|3, m))
-			if ok {
-				win = 3
-			}
-		}
+	if both == 2 {
+		x = max(x, 2+f(i+1, n, w, enemies, nextShadow(3, 3), m))
 	}
 
-	if false {
-		fmt.Println("----------------------", i, shadow, "->", a, win)
-		for j := 0; j < n; j++ {
-			cur := " "
-			if j == i {
-				cur = "*"
-			}
-			if j == i-1 && shadow&1 == 1 {
-				cur = ">"
-			}
-			fmt.Printf("%2d%s", enemies[j], cur)
-		}
-		fmt.Println()
-		for j := 0; j < n; j++ {
-			cur := " "
-			if j == i-1 && shadow&2 == 2 {
-				cur = ">"
-			}
-			fmt.Printf("%2d%s", enemies[j+n], cur)
-		}
-		fmt.Println()
-	}
-
-	m[i][shadow] = a + 1
-	return a
+	m[i][key] = x + 1
+	return x
 }
 
 func solve(n, w int, enemies []int) {
@@ -196,9 +154,9 @@ func addPair(a [][2]int, p [2]int) ([][2]int, bool) {
 	return append(a, p), true
 }
 
-func max(a, b int) (int, bool) {
+func max(a, b int) int {
 	if a > b {
-		return a, false
+		return a
 	}
-	return b, true
+	return b
 }
