@@ -55,7 +55,7 @@ var total int
 func f(i, n, w int, enemies, counter []int) int {
 	total++
 
-	if i == n {
+	if i == n*2 {
 		return 0
 	}
 
@@ -76,25 +76,30 @@ func f(i, n, w int, enemies, counter []int) int {
 	x := f(i+1, n, w, enemies, counter)
 	// fmt.Println(" ", i, "-", x)
 
-	counter[i]++
-	for _, j := range [2]int{r, b} {
-		if counter[j] != 0 {
-			continue
-		}
-
-		if j != -1 && j != i && enemies[i]+enemies[j] <= w {
-			counter[j]++
-
-			y := 1 + f(i+1, n, w, enemies, counter)
-			// fmt.Println(" ", i, j, y)
-			if x < y {
-				x = y
+	if counter[i] == 0 {
+		counter[i]++
+		for _, j := range [2]int{r, b} {
+			if j == -1 || j == i {
+				continue
+			}
+			if counter[j] != 0 {
+				continue
 			}
 
-			counter[j]--
+			if enemies[i]+enemies[j] <= w {
+				counter[j]++
+
+				y := 1 + f(i+1, n, w, enemies, counter, m)
+				// fmt.Println(" ", i, j, y)
+				if x < y {
+					x = y
+				}
+
+				counter[j]--
+			}
 		}
+		counter[i]--
 	}
-	counter[i]--
 
 	return x
 }
