@@ -87,10 +87,10 @@ func greedyPairs(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		return leftBits | rightBits
 	}
 
-	// assume no link
+	// assume no pair
 	x := greedyPairs(i+1, n, w, enemies, nextShadow(0, 0), m)
 
-	// assume left link
+	// assume left pair
 	if shadow&3 == 0 && enemies[i]+enemies[b] <= w {
 		here := 1
 		next := greedyPairs(i+1, n, w, enemies, nextShadow(3, 0), m)
@@ -99,7 +99,7 @@ func greedyPairs(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 
 	both := 0
 
-	// assume top link
+	// assume top pair
 	if shadow&1 == 0 && i != r && enemies[i]+enemies[r] <= w {
 		if !(i == n-1 && shadow&4 != 0) {
 			here := 1
@@ -109,7 +109,7 @@ func greedyPairs(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		}
 	}
 
-	// assume bottom link
+	// assume bottom pair
 	if shadow&2 == 0 && b != br && enemies[b]+enemies[br] <= w {
 		if !(i == n-1 && shadow&8 != 0) {
 			here := 1
@@ -119,7 +119,7 @@ func greedyPairs(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		}
 	}
 
-	// assume top & bottom link
+	// assume both top & bottom pairs
 	if both == 2 {
 		here := 2
 		next := greedyPairs(i+1, n, w, enemies, nextShadow(3, 3), m)
