@@ -50,202 +50,60 @@ func main() {
 	}
 }
 
-func pairwise(n, w int, enemies []int) (pairs [][2]int, counter []int) {
-	counter = make([]int, n*2)
+var total int
 
-	var added bool
-	for i := 0; i < n*2; i++ {
-		var (
-			// l int // left
-			r int // right
-			b int // bottom
-		)
-
-		if i < n {
-			r = (i + 1) % n
-			b = i + n
-		} else {
-			r = (i+1)%n + n
-			b = -1
-		}
-
-		for _, j := range [2]int{r, b} {
-			if j != -1 && j != i && enemies[i]+enemies[j] <= w {
-				pair := [2]int{i, j}
-				// sort
-				if i > j {
-					pair[0] = j
-					pair[1] = i
-				}
-
-				pairs, added = addPair(pairs, pair)
-
-				if added {
-					counter[i]++
-					counter[j]++
-				}
-			}
-		}
-	}
-
-	return
-}
-
-var miss, total int
-
-type tree struct {
-	values map[int]int
-	index  map[int]tree
-}
-
-func newTree() tree {
-	return tree{make(map[int]int), make(map[int]tree)}
-}
-
-func greedyPairs(pairs [][2]int, counter []int, covered []int, m tree) (n int) {
+func f(i, n, w int, enemies, counter []int) int {
 	total++
 
-	p := len(pairs)
-
-	if p == 0 {
-		n = 0
-		return
+	if i == n {
+		return 0
 	}
 
-	t := m
-	var path []int
-	for _, c := range covered {
-		if counter[c] == 0 {
+	var (
+		// l int // left
+		r int // right
+		b int // bottom
+	)
+
+	if i < n {
+		r = (i + 1) % n
+		b = i + n
+	} else {
+		r = (i+1)%n + n
+		b = -1
+	}
+
+	x := f(i+1, n, w, enemies, counter)
+	// fmt.Println(" ", i, "-", x)
+
+	counter[i]++
+	for _, j := range [2]int{r, b} {
+		if counter[j] != 0 {
 			continue
 		}
-		path = append(path, c)
-		if _, ok := t.index[c]; !ok {
-			t.index[c] = newTree()
-		}
-		t = t.index[c]
-	}
 
-	// fmt.Println("000___", fmt.Sprintf("%02d", total))
-	// fmt.Println("000___", fmt.Sprintf("%02d", total), "counter:", counter)
-	// fmt.Println("000___", fmt.Sprintf("%02d", total), "path:", path, "covered:", covered)
+		if j != -1 && j != i && enemies[i]+enemies[j] <= w {
+			counter[j]++
 
-	if cached, ok := t.values[p]; ok {
-		n = cached
-		// fmt.Println("000___", fmt.Sprintf("%02d", total), "HIT!", p, pairs, n)
-		return
-	}
-
-	defer func(x int) {
-		t.values[p] = n
-		// fmt.Println("000___", fmt.Sprintf("%02d", x), "MISS", p, pairs, n)
-	}(total)
-
-	miss++
-
-	// ------------------
-
-	pair := pairs[0]
-	x := pair[0]
-	y := pair[1]
-
-	var neg, pos int
-
-	if has(covered, x) || has(covered, y) {
-		n = 0
-	} else {
-		n = 1
-	}
-
-	if len(pairs) == 1 {
-		return
-	}
-
-	counter[x]--
-	counter[y]--
-
-	// if this pair is not used.
-	neg = greedyPairs(pairs[1:], counter, covered, m)
-
-	// if this pair is used.
-	if n == 0 {
-		pos = 0
-	} else {
-		pos = 1 + greedyPairs(pairs[1:], counter, update(covered, x, y), m)
-	}
-
-	counter[x]++
-	counter[y]++
-
-	if neg > pos {
-		n = neg
-	} else {
-		n = pos
-	}
-	return
-}
-
-func greedyPairs2(pairs [][2]int, counter []int) (n int) {
-	threads := make([][]int, 0)
-	nextThreads := make([][]int, 0)
-
-	threads = append(threads, make([]int, 0))
-
-	for i, pair := range pairs {
-		fmt.Println(threads)
-
-		if i == 3 {
-			break
-		}
-
-		x := pair[0]
-		y := pair[1]
-		counter[x]--
-		counter[y]--
-
-		for _, covered := range threads {
-			nextThreads = append(nextThreads, covered)
-
-			if !has(covered, x) && !has(covered, y) {
-				nextCovered := covered[:]
-				if counter[x] != 0 {
-					nextCovered = update(nextCovered, x)
-				}
-				if counter[y] != 0 {
-					nextCovered = update(nextCovered, y)
-				}
-				nextThreads = append(nextThreads, nextCovered)
+			y := 1 + f(i+1, n, w, enemies, counter)
+			// fmt.Println(" ", i, j, y)
+			if x < y {
+				x = y
 			}
-		}
 
-		threads = nextThreads
-		nextThreads = make([][]int, 0)
-	}
-
-	for _, covered := range threads {
-		count := len(covered) / 2
-		if n < count {
-			n = count
+			counter[j]--
 		}
 	}
-	return
+	counter[i]--
+
+	return x
 }
 
 func solve(n, w int, enemies []int) {
-	pairs, counter := pairwise(n, w, enemies)
-
-	covered := make([]int, 0)
-	m := newTree()
-
-	_ = covered
-	_ = m
-
-	// numPairs := greedyPairs(pairs, counter, covered, m)
-	numPairs := greedyPairs2(pairs, counter)
+	counter := make([]int, n*2)
+	numPairs := f(0, n, w, enemies, counter)
 	answer := numPairs + (n-numPairs)*2
-
-	// fmt.Println("PAIRS", pairs)
-	// fmt.Println("COUNTER", counter)
-	fmt.Println(answer, miss, total)
+	fmt.Println(answer, total)
 }
 
 // Set operations
