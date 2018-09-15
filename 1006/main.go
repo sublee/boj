@@ -186,27 +186,15 @@ func solve(n, w int, enemies []int) {
 
 // Set operations
 
-func has(a []int, i int) bool {
-	for _, j := range a {
-		if j == i {
-			return true
-		}
-	}
-	return false
+func has(a []int, x int) bool {
+	i := sort.SearchInts(a, x)
+	return i < len(a) && a[i] == x
 }
 
-func add(a []int, i int) []int {
-	if has(a, i) {
-		return a
-	}
-	return append(a, i)
-}
-
-func remove(a []int, i int) []int {
-	for k, j := range a {
-		if j == i {
-			return append(a[:k], a[k+1:]...)
-		}
+func update(a []int, xs ...int) []int {
+	for _, x := range xs {
+		i := sort.SearchInts(a, x)
+		a = append(a[:i], append([]int{x}, a[i:]...)...)
 	}
 	return a
 }
