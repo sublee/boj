@@ -50,63 +50,75 @@ func main() {
 	}
 }
 
-var total int
+var miss, total int
 
-func f(i, n, w int, enemies, counter []int) int {
+func f(i, n, w int, enemies []int, prev int) int {
 	total++
 
-	if i == n*2 {
+	if i == n {
+		// fmt.Println(i, counter, 0)
 		return 0
 	}
 
 	var (
-		// l int // left
-		r int // right
-		b int // bottom
+		r  = (i + 1) % n // right
+		b  = i + n       // bottom
+		br = (i+1)%n + n // bottom right
 	)
 
-	if i < n {
-		r = (i + 1) % n
-		b = i + n
-	} else {
-		r = (i+1)%n + n
-		b = -1
+	// masks
+	// [i-b, i-r, b-br, r-br]
+
+	// x - x
+	// |   |
+	// x - x
+
+	var a int
+
+	a = max(a, f(i+1, n, w, enemies, 0))
+	if prev == 0 && enemies[i]+enemies[b] <= w {
+		a++
 	}
 
-	x := f(i+1, n, w, enemies, counter)
-	// fmt.Println(" ", i, "-", x)
+	if prev&1 == 0 && enemies[i]+enemies[r] <= w {
+		a = max(a, 1+f(i+1, n, w, enemies, 1))
+	}
+	if prev&2 == 0 && enemies[b]+enemies[br] <= w {
+		a = max(a, 1+f(i+1, n, w, enemies, 2))
+	}
+	if prev&1 == 0 && enemies[i]+enemies[r] <= w && prev&2 == 0 && enemies[b]+enemies[br] <= w {
+		a = max(a, 2+f(i+1, n, w, enemies, 3))
+	}
 
-	if counter[i] == 0 {
-		counter[i]++
-		for _, j := range [2]int{r, b} {
-			if j == -1 || j == i {
-				continue
+	if false {
+		fmt.Println("----------------------", i, prev)
+		for j := 0; j < n; j++ {
+			cur := " "
+			if j == i {
+				cur = "*"
 			}
-			if counter[j] != 0 {
-				continue
+			if j == i-1 && prev&1 == 1 {
+				cur = ">"
 			}
-
-			if enemies[i]+enemies[j] <= w {
-				counter[j]++
-
-				y := 1 + f(i+1, n, w, enemies, counter, m)
-				// fmt.Println(" ", i, j, y)
-				if x < y {
-					x = y
-				}
-
-				counter[j]--
-			}
+			fmt.Printf("%2d%s", enemies[j], cur)
 		}
-		counter[i]--
+		fmt.Println()
+		for j := 0; j < n; j++ {
+			cur := " "
+			if j == i-1 && prev&2 == 2 {
+				cur = ">"
+			}
+			fmt.Printf("%2d%s", enemies[j+n], cur)
+		}
+		fmt.Println()
+		fmt.Println(a)
 	}
 
-	return x
+	return a
 }
 
 func solve(n, w int, enemies []int) {
-	counter := make([]int, n*2)
-	numPairs := f(0, n, w, enemies, counter)
+	numPairs := f(0, n, w, enemies, 0)
 	answer := numPairs + (n-numPairs)*2
 	fmt.Println(answer, total)
 }
@@ -140,4 +152,11 @@ func addPair(a [][2]int, p [2]int) ([][2]int, bool) {
 		return a, false
 	}
 	return append(a, p), true
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
