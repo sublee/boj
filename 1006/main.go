@@ -52,13 +52,19 @@ func main() {
 
 var miss, total int
 
-func f(i, n, w int, enemies []int, prev int) int {
+func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 	total++
 
 	if i == n {
 		// fmt.Println(i, counter, 0)
 		return 0
 	}
+
+	if m[i][shadow] != 0 {
+		return m[i][shadow] - 1
+	}
+
+	miss++
 
 	var (
 		r  = (i + 1) % n // right
@@ -73,31 +79,66 @@ func f(i, n, w int, enemies []int, prev int) int {
 	// |   |
 	// x - x
 
-	var a int
+	var a, win int
+	var ok bool
 
-	a = max(a, f(i+1, n, w, enemies, 0))
-	if prev == 0 && enemies[i]+enemies[b] <= w {
-		a++
+	a = f(i+1, n, w, enemies, shadow&12|0, m)
+	win = -1
+
+	if shadow&3 == 0 && enemies[i]+enemies[b] <= w {
+		if i == 0 {
+			shadow = 3 << 2
+		}
+		a, ok = max(a, 1+f(i+1, n, w, enemies, shadow&12|0, m))
+		if ok {
+			win = 0
+		}
 	}
 
-	if prev&1 == 0 && enemies[i]+enemies[r] <= w {
-		a = max(a, 1+f(i+1, n, w, enemies, 1))
+	if shadow&1 == 0 && enemies[i]+enemies[r] <= w {
+		if i < n-1 || shadow&4 == 0 {
+			if i == 0 {
+				shadow = 1 << 2
+			}
+			a, ok = max(a, 1+f(i+1, n, w, enemies, shadow&12|1, m))
+			if ok {
+				win = 1
+			}
+		}
 	}
-	if prev&2 == 0 && enemies[b]+enemies[br] <= w {
-		a = max(a, 1+f(i+1, n, w, enemies, 2))
+
+	if shadow&2 == 0 && enemies[b]+enemies[br] <= w {
+		if i < n-1 || shadow&16 == 0 {
+			if i == 0 {
+				shadow = 2 << 2
+			}
+			a, ok = max(a, 1+f(i+1, n, w, enemies, shadow&12|2, m))
+			if ok {
+				win = 2
+			}
+		}
 	}
-	if prev&1 == 0 && enemies[i]+enemies[r] <= w && prev&2 == 0 && enemies[b]+enemies[br] <= w {
-		a = max(a, 2+f(i+1, n, w, enemies, 3))
+
+	if shadow&1 == 0 && enemies[i]+enemies[r] <= w && shadow&2 == 0 && enemies[b]+enemies[br] <= w {
+		if i < n-1 || shadow&12 == 0 {
+			if i == 0 {
+				shadow = 3 << 2
+			}
+			a, ok = max(a, 2+f(i+1, n, w, enemies, shadow&12|3, m))
+			if ok {
+				win = 3
+			}
+		}
 	}
 
 	if false {
-		fmt.Println("----------------------", i, prev)
+		fmt.Println("----------------------", i, shadow, "->", a, win)
 		for j := 0; j < n; j++ {
 			cur := " "
 			if j == i {
 				cur = "*"
 			}
-			if j == i-1 && prev&1 == 1 {
+			if j == i-1 && shadow&1 == 1 {
 				cur = ">"
 			}
 			fmt.Printf("%2d%s", enemies[j], cur)
@@ -105,22 +146,23 @@ func f(i, n, w int, enemies []int, prev int) int {
 		fmt.Println()
 		for j := 0; j < n; j++ {
 			cur := " "
-			if j == i-1 && prev&2 == 2 {
+			if j == i-1 && shadow&2 == 2 {
 				cur = ">"
 			}
 			fmt.Printf("%2d%s", enemies[j+n], cur)
 		}
 		fmt.Println()
-		fmt.Println(a)
 	}
 
+	m[i][shadow] = a + 1
 	return a
 }
 
 func solve(n, w int, enemies []int) {
-	numPairs := f(0, n, w, enemies, 0)
+	m := make([][16]int, n)
+	numPairs := f(0, n, w, enemies, 0, m)
 	answer := numPairs + (n-numPairs)*2
-	fmt.Println(answer, total)
+	fmt.Println(answer, miss, total)
 }
 
 // Set operations
@@ -154,9 +196,9 @@ func addPair(a [][2]int, p [2]int) ([][2]int, bool) {
 	return append(a, p), true
 }
 
-func max(a, b int) int {
+func max(a, b int) (int, bool) {
 	if a > b {
-		return a
+		return a, false
 	}
-	return b
+	return b, true
 }
