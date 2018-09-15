@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -50,13 +49,8 @@ func main() {
 	}
 }
 
-var miss, total int
-
 func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
-	total++
-
 	if i == n {
-		// fmt.Println(i, counter, 0)
 		return 0
 	}
 
@@ -69,39 +63,37 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		return m[i][key] - 1
 	}
 
-	miss++
-
 	var (
 		r  = (i + 1) % n // right
 		b  = i + n       // bottom
-		br = (i+1)%n + n // bottom right
+		br = r + n       // bottom right
 	)
 
-	nextShadow := func(nextBits, firstBits int) int {
+	nextShadow := func(leftBits, rightBits int) int {
 		if i == 0 {
-			firstBits <<= 2
+			leftBits <<= 2
 		} else {
-			firstBits = shadow & 12
+			leftBits = shadow & 12
 		}
-		return firstBits | nextBits
+		return leftBits | rightBits
 	}
 
 	x := f(i+1, n, w, enemies, nextShadow(0, 0), m)
 
 	if shadow&3 == 0 && enemies[i]+enemies[b] <= w {
-		x = max(x, 1+f(i+1, n, w, enemies, nextShadow(0, 3), m))
+		x = max(x, 1+f(i+1, n, w, enemies, nextShadow(3, 0), m))
 	}
 
 	both := 0
 
-	if shadow&1 == 0 && enemies[i]+enemies[r] <= w {
+	if shadow&1 == 0 && i != r && enemies[i]+enemies[r] <= w {
 		if !(i == n-1 && shadow&4 != 0) {
 			x = max(x, 1+f(i+1, n, w, enemies, nextShadow(1, 1), m))
 			both++
 		}
 	}
 
-	if shadow&2 == 0 && enemies[b]+enemies[br] <= w {
+	if shadow&2 == 0 && b != br && enemies[b]+enemies[br] <= w {
 		if !(i == n-1 && shadow&8 != 0) {
 			x = max(x, 1+f(i+1, n, w, enemies, nextShadow(2, 2), m))
 			both++
@@ -120,38 +112,7 @@ func solve(n, w int, enemies []int) {
 	m := make([][16]int, n)
 	numPairs := f(0, n, w, enemies, 0, m)
 	answer := numPairs + (n-numPairs)*2
-	fmt.Println(answer, miss, total)
-}
-
-// Set operations
-
-func has(a []int, x int) bool {
-	i := sort.SearchInts(a, x)
-	return i < len(a) && a[i] == x
-}
-
-func update(a []int, xs ...int) []int {
-	for _, x := range xs {
-		i := sort.SearchInts(a, x)
-		a = append(a[:i], append([]int{x}, a[i:]...)...)
-	}
-	return a
-}
-
-func hasPair(a [][2]int, p [2]int) bool {
-	for _, q := range a {
-		if q == p {
-			return true
-		}
-	}
-	return false
-}
-
-func addPair(a [][2]int, p [2]int) ([][2]int, bool) {
-	if hasPair(a, p) {
-		return a, false
-	}
-	return append(a, p), true
+	fmt.Println(answer)
 }
 
 func max(a, b int) int {
