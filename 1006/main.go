@@ -54,13 +54,8 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		return 0
 	}
 
-	key := shadow
-	if i != n-1 {
-		key &^= 12
-	}
-
-	if m[i][key] != 0 {
-		return m[i][key] - 1
+	if m[i][shadow] != 0 {
+		return m[i][shadow] - 1
 	}
 
 	var (
@@ -104,7 +99,7 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 		x = max(x, 2+f(i+1, n, w, enemies, nextShadow(3, 3), m))
 	}
 
-	m[i][key] = x + 1
+	m[i][shadow] = x + 1
 	return x
 }
 
