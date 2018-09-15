@@ -171,16 +171,54 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 	return
 }
 
+func greedyPairs2(pairs [][2]int) (n int) {
+	threads := make([][]int, 0)
+	nextThreads := make([][]int, 0)
+
+	threads = append(threads, make([]int, 0))
+
+	for _, pair := range pairs {
+		fmt.Println(pair, threads)
+
+		x := pair[0]
+		y := pair[1]
+
+		for _, covered := range threads {
+			nextThreads = append(nextThreads, covered)
+
+			if !has(covered, x) && !has(covered, y) {
+				newCovered := make([]int, len(covered))
+				copy(newCovered, covered)
+				newCovered = append(newCovered, x, y)
+				nextThreads = append(nextThreads, newCovered)
+			}
+		}
+
+		threads = nextThreads
+		nextThreads = make([][]int, 0)
+	}
+
+	for _, covered := range threads {
+		count := len(covered) / 2
+		if n < count {
+			n = count
+		}
+	}
+	return
+}
+
 func solve(n, w int, enemies []int) {
 	pairs := pairwise(n, w, enemies)
 
-	covered := make([]int, 0)
-	m := make(memo)
+	// covered := make([]int, 0)
+	// m := make(memo)
 
-	numPairs := greedyPairs(pairs, covered, m)
+	numPairs := greedyPairs2(pairs)
 	answer := numPairs + (n-numPairs)*2
 
+	fmt.Println("NUM", numPairs)
 	fmt.Println("PAIRS", pairs)
+
 	fmt.Println(answer, counter)
 }
 
