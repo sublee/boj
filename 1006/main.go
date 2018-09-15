@@ -51,7 +51,7 @@ func main() {
 
 func solve(n, w int, enemies []int) {
 	m := make([][16]int, n)
-	numPairs := f(0, n, w, enemies, 0, m)
+	numPairs := greedyPairs(0, n, w, enemies, 0, m)
 	answer := numPairs + (n-numPairs)*2
 	fmt.Println(answer)
 }
@@ -63,7 +63,7 @@ func max(a, b int) int {
 	return b
 }
 
-func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
+func greedyPairs(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 	// fast returns
 	if i == n {
 		return 0
@@ -88,11 +88,13 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 	}
 
 	// assume no link
-	x := f(i+1, n, w, enemies, nextShadow(0, 0), m)
+	x := greedyPairs(i+1, n, w, enemies, nextShadow(0, 0), m)
 
 	// assume left link
 	if shadow&3 == 0 && enemies[i]+enemies[b] <= w {
-		x = max(x, 1+f(i+1, n, w, enemies, nextShadow(3, 0), m))
+		here := 1
+		next := greedyPairs(i+1, n, w, enemies, nextShadow(3, 0), m)
+		x = max(x, here+next)
 	}
 
 	both := 0
@@ -100,7 +102,9 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 	// assume top link
 	if shadow&1 == 0 && i != r && enemies[i]+enemies[r] <= w {
 		if !(i == n-1 && shadow&4 != 0) {
-			x = max(x, 1+f(i+1, n, w, enemies, nextShadow(1, 1), m))
+			here := 1
+			next := greedyPairs(i+1, n, w, enemies, nextShadow(1, 1), m)
+			x = max(x, here+next)
 			both++
 		}
 	}
@@ -108,14 +112,18 @@ func f(i, n, w int, enemies []int, shadow int, m [][16]int) int {
 	// assume bottom link
 	if shadow&2 == 0 && b != br && enemies[b]+enemies[br] <= w {
 		if !(i == n-1 && shadow&8 != 0) {
-			x = max(x, 1+f(i+1, n, w, enemies, nextShadow(2, 2), m))
+			here := 1
+			next := greedyPairs(i+1, n, w, enemies, nextShadow(2, 2), m)
+			x = max(x, here+next)
 			both++
 		}
 	}
 
 	// assume top & bottom link
 	if both == 2 {
-		x = max(x, 2+f(i+1, n, w, enemies, nextShadow(3, 3), m))
+		here := 2
+		next := greedyPairs(i+1, n, w, enemies, nextShadow(3, 3), m)
+		x = max(x, here+next)
 	}
 
 	// cache it
