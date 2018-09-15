@@ -50,9 +50,10 @@ func main() {
 	}
 }
 
-func pairwise(n, w int, enemies []int) [][2]int {
-	pairs := make([][2]int, 0)
+func pairwise(n, w int, enemies []int) (pairs [][2]int, counter []int) {
+	counter = make([]int, n*2)
 
+	var added bool
 	for i := 0; i < n*2; i++ {
 		var (
 			// l int // left
@@ -77,63 +78,71 @@ func pairwise(n, w int, enemies []int) [][2]int {
 					pair[1] = i
 				}
 
-				pairs = addPair(pairs, pair)
+				pairs, added = addPair(pairs, pair)
+
+				if added {
+					counter[i]++
+					counter[j]++
+				}
 			}
 		}
 	}
 
-	return pairs
+	return
 }
 
-var counter int
-
-type memo map[int]*tree
+var miss, total int
 
 type tree struct {
-	value int
-	index map[int]*tree
+	values map[int]int
+	index  map[int]tree
 }
 
-func newTree() *tree {
-	return &tree{-1, make(map[int]*tree)}
+func newTree() tree {
+	return tree{make(map[int]int), make(map[int]tree)}
 }
 
-func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
+func greedyPairs(pairs [][2]int, counter []int, covered []int, m tree) (n int) {
+	total++
+
 	p := len(pairs)
-	if _, ok := m[p]; !ok {
-		m[p] = newTree()
+
+	if p == 0 {
+		n = 0
+		return
 	}
 
-	t, _ := m[p]
+	t := m
+	var path []int
 	for _, c := range covered {
+		if counter[c] == 0 {
+			continue
+		}
+		path = append(path, c)
 		if _, ok := t.index[c]; !ok {
 			t.index[c] = newTree()
 		}
 		t = t.index[c]
 	}
-	if t.value != -1 {
-		n = t.value
-		// fmt.Println(p)
+
+	// fmt.Println("000___", fmt.Sprintf("%02d", total))
+	// fmt.Println("000___", fmt.Sprintf("%02d", total), "counter:", counter)
+	// fmt.Println("000___", fmt.Sprintf("%02d", total), "path:", path, "covered:", covered)
+
+	if cached, ok := t.values[p]; ok {
+		n = cached
+		// fmt.Println("000___", fmt.Sprintf("%02d", total), "HIT!", p, pairs, n)
 		return
 	}
 
-	defer func(c string) {
-		t.value = n
-		fmt.Println(p, c, n)
-		// fmt.Println(p, covered, n)
-		// if _, ok := m[len(pairs)]; !ok {
-		// 	m[len(pairs)] = make(map[string]int)
-		// }
-		// m[len(pairs)][h] = n
-		// fmt.Fprintln(os.Stderr, "f(", len(pairs), ", ", h, ") =>", foundPairs)
-	}(fmt.Sprintf("%v", covered))
+	defer func(x int) {
+		t.values[p] = n
+		// fmt.Println("000___", fmt.Sprintf("%02d", x), "MISS", p, pairs, n)
+	}(total)
 
-	counter++
+	miss++
 
-	if len(pairs) == 0 {
-		n = 0
-		return
-	}
+	// ------------------
 
 	pair := pairs[0]
 	x := pair[0]
@@ -151,17 +160,21 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 		return
 	}
 
+	counter[x]--
+	counter[y]--
+
 	// if this pair is not used.
-	neg = greedyPairs(pairs[1:], covered, m)
+	neg = greedyPairs(pairs[1:], counter, covered, m)
 
 	// if this pair is used.
 	if n == 0 {
 		pos = 0
 	} else {
-		subCovered := append(covered, x, y)
-		sort.Sort(sort.IntSlice(subCovered))
-		pos = 1 + greedyPairs(pairs[1:], subCovered, m)
+		pos = 1 + greedyPairs(pairs[1:], counter, update(covered, x, y), m)
 	}
+
+	counter[x]++
+	counter[y]++
 
 	if neg > pos {
 		n = neg
@@ -172,16 +185,17 @@ func greedyPairs(pairs [][2]int, covered []int, m memo) (n int) {
 }
 
 func solve(n, w int, enemies []int) {
-	pairs := pairwise(n, w, enemies)
+	pairs, counter := pairwise(n, w, enemies)
 
 	covered := make([]int, 0)
-	m := make(memo)
+	m := newTree()
 
-	numPairs := greedyPairs(pairs, covered, m)
+	numPairs := greedyPairs(pairs, counter, covered, m)
 	answer := numPairs + (n-numPairs)*2
 
-	fmt.Println("PAIRS", pairs)
-	fmt.Println(answer, counter)
+	// fmt.Println("PAIRS", pairs)
+	// fmt.Println("COUNTER", counter)
+	fmt.Println(answer, miss, total)
 }
 
 // Set operations
@@ -208,9 +222,9 @@ func hasPair(a [][2]int, p [2]int) bool {
 	return false
 }
 
-func addPair(a [][2]int, p [2]int) [][2]int {
+func addPair(a [][2]int, p [2]int) ([][2]int, bool) {
 	if hasPair(a, p) {
-		return a
+		return a, false
 	}
-	return append(a, p)
+	return append(a, p), true
 }
