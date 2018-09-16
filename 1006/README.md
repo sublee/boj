@@ -2,6 +2,22 @@
 
 https://www.acmicpc.net/problem/1006
 
+```
+$ cat testcase3.txt | go run main.go
+3
+5
+5
+4
+3
+4
+4
+5
+```
+
+배운 것: 문제가 작위적인 데엔 이유가 있다.
+
+아쉬운 점: 틀린 접근법에서 오래 헤맸다.
+
 ---
 
 ## 문제
