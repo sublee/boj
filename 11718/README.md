@@ -3,8 +3,13 @@
 https://www.acmicpc.net/problem/11718
 
 ```
-$ echo "Hello\nBaekjoon\nOnline Judge" | ./main.sh
+$ echo "Hello\nBaekjoon\nOnline Judge" | awk -f ./main.awk
+Hello
+Baekjoon
+Online Judge
 ```
+
+배운 것: `awk -f`
 
 ---
 
