@@ -2,6 +2,18 @@
 
 https://www.acmicpc.net/problem/1010
 
+```
+$ cat <<EOF | go run main.go
+3
+2 2
+1 5
+13 29
+EOF
+1
+5
+67863915
+```
+
 ---
 
 ## 문제
