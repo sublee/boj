@@ -14,10 +14,6 @@ func Test2(t *testing.T) {
 	assert.Equal(t, 16, solve([]int{8, 4, 2}))
 }
 
-func Test3(t *testing.T) {
-	assert.Equal(t, 42, solve([]int{2, 7, 3}))
-}
-
 func Test4(t *testing.T) {
 	assert.Equal(t, 42, solve([]int{6, 7, 2, 21, 3}))
 }
