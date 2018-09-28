@@ -29,16 +29,9 @@ func solve(x, y int) int {
 		d -= k2
 	}
 
+	// 0 or 1 or 2 more steps required depending on the remaining d value.
 	k := k2 / 2
+	more := (d + k) / (k + 1)
 
-	// Remaining d must be less than 2*k.
-	if d == 0 {
-		return k2
-	} else if d <= k+1 {
-		// 1 more step required for 1 ~ k+1.
-		return k2 + 1
-	} else {
-		// 2 more steps required for k+1 ~ 2k.
-		return k2 + 2
-	}
+	return k2 + more
 }
