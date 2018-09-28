@@ -72,5 +72,9 @@ func _solve(d, k int) int {
 	b := walk(k + 1)
 	c := walk(k - 1)
 
-	return 1 + min(a, b, c)
+	x := min(a, b, c)
+	if x != wrong {
+		x++
+	}
+	return x
 }
