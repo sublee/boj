@@ -2,6 +2,11 @@
 
 https://www.acmicpc.net/problem/1008
 
+```
+$ echo 1 3 | go run main.go
+0.3333333333333333
+```
+
 ---
 
 ## 문제
