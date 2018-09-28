@@ -6,75 +6,39 @@ import (
 	"os"
 )
 
-var reader = bufio.NewReader(os.Stdin)
-
-func nextInt() int {
-	var n int
-	_, err := fmt.Fscan(reader, &n)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return n
-}
-
 func main() {
-	t := nextInt()
+	var t, x, y int
+
+	r := bufio.NewReader(os.Stdin)
+
+	fmt.Fscan(r, &t)
 
 	for i := 0; i < t; i++ {
-		x := nextInt()
-		y := nextInt()
+		fmt.Fscan(r, &x, &y)
 		fmt.Println(solve(x, y))
 	}
 }
 
 func solve(x, y int) int {
-	return _solve(y-x, 0)
-}
+	d := y - x
 
-const wrong = -1
-
-func min(a, b, c int) int {
-	min := a
-	if min == wrong || b != wrong && b < min {
-		min = b
-	}
-	if min == wrong || c != wrong && c < min {
-		min = c
-	}
-	return min
-}
-
-func _solve(d, k int) int {
-	if d <= 0 {
-		// too far
-		return wrong
+	// Find maximum 2*k.
+	var k2 int
+	for d >= k2+2 {
+		k2 += 2
+		d -= k2
 	}
 
-	if d == 1 {
-		// before the goal
-		if k <= 2 {
-			return 1
-		}
+	k := k2 / 2
 
-		// too fast
-		return wrong
+	// Remaining d must be less than 2*k.
+	if d == 0 {
+		return k2
+	} else if d <= k+1 {
+		// 1 more step required for 1 ~ k+1.
+		return k2 + 1
+	} else {
+		// 2 more steps required for k+1 ~ 2k.
+		return k2 + 2
 	}
-
-	walk := func(k int) int {
-		if k <= 0 {
-			return wrong
-		}
-		return _solve(d-k, k)
-	}
-	a := walk(k)
-	b := walk(k + 1)
-	c := walk(k - 1)
-
-	x := min(a, b, c)
-	if x != wrong {
-		x++
-	}
-	return x
 }
