@@ -14,14 +14,14 @@ func main() {
 
 	cost := make([][3]int, n)
 	for i := 0; i < n; i++ {
-		fmt.Fscan(r, &cost[0], &cost[1], &cost[2])
+		fmt.Fscan(r, &cost[i][0], &cost[i][1], &cost[i][2])
 	}
 
 	fmt.Println(solve(cost))
 }
 
 type memoKey struct {
-	prev, i int
+	i, prev int
 }
 
 func solve(cost [][3]int) int {
@@ -32,6 +32,11 @@ func solve(cost [][3]int) int {
 func f(cost [][3]int, i, prev int, m map[memoKey]int) int {
 	if i == len(cost) {
 		return 0
+	}
+
+	k := memoKey{i, prev}
+	if cached, ok := m[k]; ok {
+		return cached
 	}
 
 	min := -1
@@ -47,5 +52,6 @@ func f(cost [][3]int, i, prev int, m map[memoKey]int) int {
 		}
 	}
 
+	m[k] = min
 	return min
 }
