@@ -40,3 +40,19 @@ func f(n int, m []int) int {
 	m[n-1] = x
 	return x
 }
+
+// f7322464 copies rickmccoy's solution.
+// There's no memoization but much faster.
+func f7322464(n int) int {
+	if n < 2 {
+		return 0
+	}
+
+	a := f7322464(n/2) + n%2
+	b := f7322464(n/3) + n%3
+
+	if a < b {
+		return 1 + a
+	}
+	return 1 + b
+}

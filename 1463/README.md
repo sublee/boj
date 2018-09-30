@@ -6,6 +6,8 @@ https://www.acmicpc.net/problem/1463
 $ go test
 ```
 
+느낀점: rickmccoy 님 해답에 감탄했다.
+
 ---
 
 ## 문제
