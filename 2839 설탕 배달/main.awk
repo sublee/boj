@@ -1,33 +1,15 @@
 {
-    x = $1
+    n = $1
 
-    # Divide by 5
-
-    i  = int(x / 5)
-    x %= 5
-
-    if (x == 0)
+    if (n >= 10)
     {
-        print i
-        exit
+        # Pattern above 10: 23434 34545 45656...
+        print int(n/5) + substr("01212", n%5 +1, 1)
+        #                                    └─ substr() uses 1-based indexing.
     }
-
-    # Divide by 3
-
-    while (x%3 != 0 && i > 0)
+    else
     {
-        i--
-        x += 5
+        # Only 4 answers: 3:1, 5:1, 6:2, 9:3
+        print (n%3 * n%5 == 0) ? int(n/3) : -1
     }
-
-    i += int(x / 3)
-    x %= 3
-
-    if (x != 0)
-    {
-        print -1
-        exit
-    }
-
-    print i
 }
