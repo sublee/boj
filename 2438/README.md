@@ -5,7 +5,7 @@ https://www.acmicpc.net/problem/2438
 ```
 $ echo 5 | awk -f main.awk
 *
-***
+**
 ***
 ****
 *****
@@ -31,7 +31,7 @@ $ echo 5 | awk -f main.awk
 
 ```
 *
-***
+**
 ***
 ****
 *****
