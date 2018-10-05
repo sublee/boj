@@ -2,6 +2,10 @@
 
 https://www.acmicpc.net/problem/2448
 
+```
+$ echo 24 | go run main.go
+```
+
 ---
 
 ## 문제
