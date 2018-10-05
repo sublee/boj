@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
 
 func main() {
 	var n int
@@ -22,16 +26,20 @@ func initDisp(n int) [][]bool {
 }
 
 func printDisp(disp [][]bool, n int) {
+	w := bufio.NewWriter(os.Stdout)
+
 	for i := 0; i < n; i++ {
 		for j := 0; j < n*2; j++ {
 			if disp[i][j] {
-				fmt.Print("*")
+				fmt.Fprint(w, "*")
 			} else {
-				fmt.Print(" ")
+				fmt.Fprint(w, " ")
 			}
 		}
-		fmt.Println()
+		fmt.Fprintln(w)
 	}
+
+	w.Flush()
 }
 
 // drawTriangle draws the granular triangle.
