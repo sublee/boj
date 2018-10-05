@@ -2,6 +2,11 @@
 
 https://www.acmicpc.net/problem/1157
 
+```
+$ echo Mississipi | python3 main.py
+?
+```
+
 ---
 
 ## 문제
