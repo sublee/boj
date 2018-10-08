@@ -19,3 +19,7 @@ func TestMore(t *testing.T) {
 	assert.Equal(t, 60, solve(10, 12, 10, 12))
 	assert.Equal(t, -1, solve(10, 12, 9, 12))
 }
+
+func TestLarge(t *testing.T) {
+	assert.Equal(t, 1599960000, solve(39999, 40000, 39999, 40000))
+}
