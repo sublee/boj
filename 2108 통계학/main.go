@@ -76,7 +76,9 @@ func findMode(a []int) int {
 		}
 
 		if counter == maxCounter {
-			modes = append(modes, n)
+			if len(modes) < 2 {
+				modes = append(modes, n)
+			}
 		} else if counter > maxCounter {
 			maxCounter = counter
 			modes = []int{n}
