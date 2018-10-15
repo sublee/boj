@@ -10,7 +10,7 @@ func main() {
 	composites := make([]bool, n+1)
 	composites[1] = true
 
-	for i := 2; i <= n; i++ {
+	for i := 2; i*i <= n; i++ {
 		if !composites[i] {
 			for j := i * 2; j <= n; j += i {
 				composites[j] = true
