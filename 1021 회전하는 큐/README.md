@@ -2,6 +2,10 @@
 
 https://www.acmicpc.net/problem/1021
 
+```
+$ go test
+```
+
 ---
 
 ## 문제
