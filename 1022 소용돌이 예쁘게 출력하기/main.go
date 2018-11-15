@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math"
+	"os"
 	"strconv"
 )
 
@@ -96,10 +98,12 @@ func solve(r1, c1, r2, c2 int) {
 	format := "%" + strconv.Itoa(digits+1) + "d"
 
 	// Print the view.
+	w := bufio.NewWriter(os.Stdout)
 	for _, row := range view {
 		for _, col := range row {
-			fmt.Printf(format, col)
+			fmt.Fprintf(w, format, col)
 		}
-		fmt.Println()
+		fmt.Fprintln(w)
 	}
+	w.Flush()
 }
