@@ -21,18 +21,25 @@ func main() {
 }
 
 func solve(a []int) int {
+	n := len(a)
+
 	sum := a[0]
 	max := a[0]
 	l, r := 0, 0
 
-	max2 := max
-
-	for i := 1; i < len(a); i++ {
-		if sum < 0 {
-			m := findMax(a, max, l, r)
-			if m > max2 {
-				max2 = m
+	commit := func(l, r int) {
+		m := max
+		for j := l; j < r; j++ {
+			m -= a[j]
+			if m > max {
+				max = m
 			}
+		}
+	}
+
+	for i := 1; i < n; i++ {
+		if sum < 0 {
+			commit(l, r)
 			l = i
 			sum = 0
 		}
@@ -44,23 +51,7 @@ func solve(a []int) int {
 			r = i
 		}
 	}
-	m := findMax(a, max, l, r)
-	if m > max2 {
-		max2 = m
-	}
+	commit(l, r)
 
-	return max2
-}
-
-func findMax(a []int, max, l, r int) int {
-	max2 := max
-
-	for i := l; i < r; i++ {
-		max -= a[i]
-		if max > max2 {
-			max2 = max
-		}
-	}
-
-	return max2
+	return max
 }
