@@ -21,29 +21,46 @@ func main() {
 }
 
 func solve(a []int) int {
-	m := make([]int, len(a))
+	sum := a[0]
 	max := a[0]
+	l, r := 0, 0
 
-	sum := 0
-	for i := 0; i < len(a); i++ {
+	max2 := max
+
+	for i := 1; i < len(a); i++ {
+		if sum < 0 {
+			m := findMax(a, max, l, r)
+			if m > max2 {
+				max2 = m
+			}
+			l = i
+			sum = 0
+		}
+
 		sum += a[i]
-		m[i] = sum
 
 		if sum > max {
 			max = sum
+			r = i
+		}
+	}
+	m := findMax(a, max, l, r)
+	if m > max2 {
+		max2 = m
+	}
+
+	return max2
+}
+
+func findMax(a []int, max, l, r int) int {
+	max2 := max
+
+	for i := l; i < r; i++ {
+		max -= a[i]
+		if max > max2 {
+			max2 = max
 		}
 	}
 
-	for i := 1; i < len(a); i++ {
-		for j := i; j < len(a); j++ {
-			sum = m[j] - a[i-1]
-			m[j] = sum
-
-			if sum > max {
-				max = sum
-			}
-		}
-	}
-
-	return max
+	return max2
 }
