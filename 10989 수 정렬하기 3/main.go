@@ -8,21 +8,22 @@ import (
 )
 
 func main() {
+	const max = 10000
+	var counter [max]int
+
 	r := bufio.NewReader(os.Stdin)
-	w := bufio.NewWriter(os.Stdout)
+	s := bufio.NewScanner(r)
+	s.Split(bufio.ScanWords)
 
-	var n int
-	fmt.Fscanln(r, &n)
-
-	var x int
-	var counter [10000]int
-
+	// read and analyze the input numbers
+	n := scanInt(s)
 	for i := 0; i < n; i++ {
-		x = readInt(r)
-		counter[x-1]++
+		counter[scanInt(s)-1]++
 	}
 
-	for i := 0; i < 10000; i++ {
+	// print the sorted numbers
+	w := bufio.NewWriter(os.Stdout)
+	for i := 0; i < max; i++ {
 		for j := 0; j < counter[i]; j++ {
 			fmt.Fprintln(w, i+1)
 		}
@@ -30,8 +31,8 @@ func main() {
 	w.Flush()
 }
 
-func readInt(r *bufio.Reader) int {
-	line, _, _ := r.ReadLine()
-	num, _ := strconv.Atoi(string(line))
+func scanInt(s *bufio.Scanner) int {
+	s.Scan()
+	num, _ := strconv.Atoi(s.Text())
 	return num
 }
