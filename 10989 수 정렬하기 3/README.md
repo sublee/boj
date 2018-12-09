@@ -2,6 +2,32 @@
 
 https://www.acmicpc.net/problem/10989
 
+```
+$ cat << EOF | go run main.go
+10
+5
+2
+3
+1
+4
+2
+3
+5
+1
+7
+EOF
+1
+1
+2
+2
+3
+3
+4
+5
+5
+7
+```
+
 ---
 
 ## 문제

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 func main() {
@@ -11,41 +12,26 @@ func main() {
 	w := bufio.NewWriter(os.Stdout)
 
 	var n int
-	fmt.Fscan(r, &n)
+	fmt.Fscanln(r, &n)
 
-	a := make([]int, n)
+	var x int
+	var counter [10000]int
+
 	for i := 0; i < n; i++ {
-		fmt.Fscan(r, &a[i])
+		x = readInt(r)
+		counter[x-1]++
 	}
 
-	countingSort10000(a)
-
-	for i := 0; i < n; i++ {
-		fmt.Fprintln(w, a[i])
+	for i := 0; i < 10000; i++ {
+		for j := 0; j < counter[i]; j++ {
+			fmt.Fprintln(w, i+1)
+		}
 	}
 	w.Flush()
 }
 
-func countingSort10000(a []int) {
-	n := len(a)
-	b := make([]int, n)
-
-	var counter [10000]int
-
-	for _, x := range a {
-		counter[x-1]++
-	}
-
-	for k := 1; k < 10000; k++ {
-		counter[k] += counter[k-1]
-	}
-
-	for i := n - 1; i >= 0; i-- {
-		x := a[i]
-		j := counter[x-1] - 1
-		b[j] = x
-		counter[x-1]--
-	}
-
-	copy(a, b)
+func readInt(r *bufio.Reader) int {
+	line, _, _ := r.ReadLine()
+	num, _ := strconv.Atoi(string(line))
+	return num
 }
