@@ -9,6 +9,7 @@ import (
 func main() {
 	r := bufio.NewReader(os.Stdin)
 	w := bufio.NewWriter(os.Stdout)
+	defer w.Flush()
 
 	var n, m int
 	fmt.Fscan(r, &n, &m)
@@ -37,6 +38,4 @@ func main() {
 		sum := a[i2][j2] + a[i1-1][j1-1] - a[i2][j1-1] - a[i1-1][j2]
 		fmt.Fprintln(w, sum)
 	}
-
-	w.Flush()
 }
